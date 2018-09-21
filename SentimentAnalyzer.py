@@ -24,9 +24,10 @@ from keras import regularizers
 import keras
 from IPython.display import clear_output
 import json
+from cryptoObjectSearcher.cryptoObjectSearcher import CryptoObjectSearcher
 
 class SentimentAnalyzer():
-    def __init__(self, config_path):
+    def __init__(self, config_path='config.json'):
         config = json.load(open(config_path))
         self.reg_power = config['reg_power']
         self.max_length = config['max_length']
@@ -35,8 +36,7 @@ class SentimentAnalyzer():
         self.__build_model()
         self.cv=pickle.load(open(config['cv_path'],'rb'))
         self.proba_threshold = config['proba_threshold']
-
-        pass
+        self._cryptoObjectSearcher = CryptoObjectSearcher()
 
     def __char_vectorize_sentence(self, sent, countvecotrizer, max_length=50):
         sent = str(sent)
@@ -79,21 +79,25 @@ class SentimentAnalyzer():
         self.model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['binary_accuracy'])
         self.model.load_weights(self.weights_path)
 
-    def run(self,text):
+    def run(self, text):
+        res = self._cryptoObjectSearcher.search(text)
         text = self.__clean_tweet(str(text).lower())
         seqs, _ = self.__make_padded_sequences([text], self.max_length, self.cv)
         proba = self.model.predict(seqs)
-        if proba>self.proba_threshold:
-            return {
-                'decision':'positive',
-                'confidence':proba
-            }
+        if proba > self.proba_threshold:
+            res['sentiment'] = np.float32(0.5)
+            res['confidence'] = proba
         else:
-            return {
-                'decision':'negative',
-                'confidence':1-proba
-            }
+            res['sentiment'] = np.float32(-0.5)
+            res['confidence'] = 1 - proba
+        return res
 
+    def analyzeListOfDocuments(self, docs):
+        res = []
+        for doc in docs:
+            res.append(self.run(doc))
+
+        return res
 
 
 if __name__ == '__main__':
