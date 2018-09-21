@@ -22,7 +22,6 @@ import pymystem3
 import re
 from keras import regularizers
 import keras
-from IPython.display import clear_output
 import json
 from cryptoObjectSearcher.cryptoObjectSearcher import CryptoObjectSearcher
 
