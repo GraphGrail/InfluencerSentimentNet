@@ -80,15 +80,20 @@ class SentimentAnalyzer():
 
     def run(self, text):
         res = self._cryptoObjectSearcher.search(text)
-        text = self.__clean_tweet(str(text).lower())
-        seqs, _ = self.__make_padded_sequences([text], self.max_length, self.cv)
-        proba = self.model.predict(seqs)
-        if proba > self.proba_threshold:
-            res['sentiment'] = np.float32(0.5)
-            res['confidence'] = proba
-        else:
-            res['sentiment'] = np.float32(-0.5)
-            res['confidence'] = 1 - proba
+        try:
+            text = self.__clean_tweet(str(text).lower())
+            seqs, _ = self.__make_padded_sequences([text], self.max_length, self.cv)
+            proba = self.model.predict(seqs)
+            if proba > self.proba_threshold:
+                res['sentiment'] = np.float32(0.5)
+                res['confidence'] = proba
+            else:
+                res['sentiment'] = np.float32(-0.5)
+                res['confidence'] = 1 - proba
+        except Exception as e:
+            res['error'] = str(e)
+            res['sentiment'] = 0
+            res['confidence'] = 0
         return res
 
     def analyzeListOfDocuments(self, docs):
