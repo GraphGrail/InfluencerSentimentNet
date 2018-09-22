@@ -92,8 +92,8 @@ class SentimentAnalyzer():
                 res['confidence'] = 1 - proba
         except Exception as e:
             res['error'] = str(e)
-            res['sentiment'] = 0
-            res['confidence'] = 0
+            res['sentiment'] = np.float32(0)
+            res['confidence'] = np.float32(0)
         return res
 
     def analyzeListOfDocuments(self, docs):
